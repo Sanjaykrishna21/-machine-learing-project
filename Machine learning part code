@@ -1,0 +1,74 @@
+import pandas as pd
+df=pd.read_csv("/content/drive/MyDrive/Datasets/mental_health_dataset.csv")
+df
+df.isnull().sum()
+df.shape
+df.dtypes
+from sklearn.preprocessing import LabelEncoder
+le=LabelEncoder()
+df['gender']=le.fit_transform(df['gender'])
+df["employment_status"]=le.fit_transform(df["employment_status"])
+columns=["work_environment","mental_health_history","seeks_treatment","mental_health_risk"]
+for col in columns:
+  df[col]=le.fit_transform(df[col])
+corelation_matrix=df.corr()
+correlation_with_mental_health_risk = corelation_matrix['mental_health_risk']
+import seaborn as sns
+# Pass the entire correlation matrix to heatmap
+sns.heatmap(corelation_matrix)
+df.drop(["work_environment","age","gender","sleep_hours","stress_level"], axis=1, inplace=True)
+X=df.iloc[:,:-1]
+X
+y=df.iloc[:,-1]
+y
+from sklearn.preprocessing import MinMaxScaler
+scaler=MinMaxScaler()
+scaled=scaler.fit_transform(X)
+scaled
+from sklearn.model_selection import train_test_split
+x_train,x_test,y_train,y_test=train_test_split(scaled,y,test_size=0.3,random_state=1)
+from sklearn.neighbors import KNeighborsClassifier
+knn=KNeighborsClassifier()
+knn.fit(x_train,y_train)
+y_pred=knn.predict(x_test)
+y_pred
+from sklearn.metrics import accuracy_score
+print(accuracy_score(y_test,y_pred)*100)
+from sklearn.tree import DecisionTreeClassifier
+dt=DecisionTreeClassifier()
+dt.fit(x_train,y_train)
+d_pred=dt.predict(x_test)
+d_pred
+param_grid = {
+        'criterion': ['gini', 'entropy'],
+        'max_depth': [None, 5, 10, 15, 20],
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4]
+    }
+from sklearn.model_selection import GridSearchCV
+grid_search_dt = GridSearchCV(dt, param_grid, cv=5, scoring='accuracy')
+
+from sklearn.metrics import accuracy_score
+print(accuracy_score(y_test,d_pred)*100)
+from sklearn.metrics import classification_report
+print(classification_report(y_test,d_pred))
+from sklearn.naive_bayes import GaussianNB
+nb=GaussianNB()
+nb.fit(x_train,y_train)
+n_pred=nb.predict(x_test)
+n_pred
+
+from sklearn.svm import SVC
+svm=SVC()
+svm.fit(x_train,y_train)
+s_pred=svm.predict(x_test)
+s_pred
+from sklearn.metrics import accuracy_score
+print(accuracy_score(y_test,s_pred)*100)
+from sklearn.metrics import ConfusionMatrixDisplay
+print(ConfusionMatrixDisplay.from_predictions(y_test,d_pred))
+
+import pickle
+pickle.dump(dt,open('modeldt.sav','wb'))
+
+pickle.dump(scaler,open('minmax.sav','wb'))
